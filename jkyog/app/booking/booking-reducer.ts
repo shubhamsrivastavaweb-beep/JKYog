@@ -225,6 +225,13 @@ export function bookingReducer(
         quoteLoading: false,
         quoteError: action.payload,
       };
+    case "QUOTE_RESET":
+    return {
+      ...state,
+      quote: null,
+      quoteLoading: false,
+      quoteError: null,
+    };
 
     case "STEP_CHANGED":
       return {

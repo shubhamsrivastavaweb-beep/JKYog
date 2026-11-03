@@ -142,6 +142,7 @@ export type BookingAction =
     }
   | { type: "BOOKER_UPDATED"; payload: Partial<BookerDetails> }
   | { type: "PROMO_CODE_CHANGED"; payload: string }
+  | { type: "QUOTE_RESET" }
   | { type: "QUOTE_LOADING" }
   | { type: "QUOTE_LOADED"; payload: BookingQuote }
   | { type: "QUOTE_FAILED"; payload: string }

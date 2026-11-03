@@ -1,5 +1,5 @@
 import { z } from "zod";
-
+import type { AttendeeInput } from "../pricing/types";
 const FESTIVAL_DATES = [
   "2026-11-10",
   "2026-11-11",
@@ -29,7 +29,9 @@ const attendeeSchema = z.object({
   dateOfBirth: dateOfBirthSchema,
 });
 
-export const ticketSelectionSchema = z.object({
+
+
+const ticketSelectionBaseSchema = z.object({
   code: z.enum([
     "DAY_ADULT",
     "DAY_CHILD",
@@ -40,14 +42,26 @@ export const ticketSelectionSchema = z.object({
   quantity: z.number().int().min(1).max(20),
   dates: z.array(festivalDateSchema).min(1).max(5),
   attendees: z.array(attendeeSchema).max(80),
-}).superRefine((ticket, context) => {
+});
+
+const validateTicketSelection = (
+  ticket: {
+    code: string;
+    quantity: number;
+    dates: string[];
+    attendees?: AttendeeInput[];
+  },
+  context: z.RefinementCtx,
+  requireAttendees: boolean
+) => {
   if (ticket.code === "FAMILY_PASS" && ticket.dates.length !== 1) {
-  context.addIssue({
-    code: "custom",
-    path: ["dates"],
-    message: "A Family Pass is valid for one festival day only.",
-  });
+    context.addIssue({
+      code: "custom",
+      path: ["dates"],
+      message: "A Family Pass is valid for one festival day only.",
+    });
   }
+
   if (new Set(ticket.dates).size !== ticket.dates.length) {
     context.addIssue({
       code: "custom",
@@ -72,22 +86,36 @@ export const ticketSelectionSchema = z.object({
     }
   }
 
-  const expectedAttendees =
-    ticket.code === "FAMILY_PASS"
-      ? ticket.quantity * 4
-      : ticket.quantity;
+  if (requireAttendees) {
+    const expectedAttendees =
+      ticket.code === "FAMILY_PASS"
+        ? ticket.quantity * 4
+        : ticket.quantity;
 
-  if (ticket.attendees.length !== expectedAttendees) {
-    context.addIssue({
-      code: "custom",
-      path: ["attendees"],
-      message:
-        ticket.code === "FAMILY_PASS"
-          ? "Each Family Pass requires two adults and two children."
-          : "Provide attendee details for each ticket.",
-    });
+    if (ticket.attendees?.length !== expectedAttendees) {
+      context.addIssue({
+        code: "custom",
+        path: ["attendees"],
+        message:
+          ticket.code === "FAMILY_PASS"
+            ? "Each Family Pass requires two adults and two children."
+            : "Provide attendee details for each ticket.",
+      });
+    }
   }
-});
+};
+
+export const ticketSelectionSchema =
+  ticketSelectionBaseSchema.superRefine((ticket, context) => {
+    validateTicketSelection(ticket, context, true);
+  });
+
+const quoteTicketSelectionSchema =
+  ticketSelectionBaseSchema
+    .omit({ attendees: true })
+    .superRefine((ticket, context) => {
+      validateTicketSelection(ticket, context, false);
+    });
 
 export const extraSelectionSchema = z.object({
   code: z.enum([
@@ -137,7 +165,8 @@ export const extraSelectionSchema = z.object({
 });
 
 export const quoteBookingSchema = z.object({
-  tickets: z.array(ticketSelectionSchema).min(1).max(20),
+  // tickets: z.array(ticketSelectionSchema).min(1).max(20),
+  tickets: z.array(quoteTicketSelectionSchema).min(1).max(20),
   extras: z.array(extraSelectionSchema).max(20),
   promoCode: z.string().trim().max(50).optional(),
 }).superRefine((request, context) => {

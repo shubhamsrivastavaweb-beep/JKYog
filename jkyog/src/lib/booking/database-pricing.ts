@@ -21,6 +21,9 @@ export async function calculateDatabasePricing(
     },
     tickets,
     extras,
+    {
+      validateAttendeeDetails: false,
+    },
   );
 
   if (baseResult.errors.length > 0 || !request.promoCode?.trim()) {

@@ -3,6 +3,10 @@
 
 import { useBooking } from "./booking/use-booking";
 import TicketSelector from "./booking/components/TicketSelector";
+import AttendeeForm from "./booking/components/AttendeeForm";
+import ExtrasSelector from "./booking/components/ExtrasSelector";
+import BookingSummary from "./booking/components/BookingSummary";
+import BookerForm from "./booking/components/BookerForm";
 
 export default function Home() {
   const { state, dispatch } = useBooking();
@@ -59,6 +63,25 @@ export default function Home() {
           tickets={state.catalog.tickets}
           festivalDates={state.catalog.festivalDates}
           selections={state.tickets}
+          dispatch={dispatch}
+        />
+        <AttendeeForm
+          tickets={state.catalog.tickets}
+          selections={state.tickets}
+          dispatch={dispatch}
+        />
+        <BookerForm
+          booker={state.booker}
+          dispatch={dispatch}
+        />
+        <ExtrasSelector
+          extras={state.catalog.extras}
+          festivalDates={state.catalog.festivalDates}
+          selections={state.extras}
+          dispatch={dispatch}
+        />
+        <BookingSummary
+          state={state}
           dispatch={dispatch}
         />
       </div>

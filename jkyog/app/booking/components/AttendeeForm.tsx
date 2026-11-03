@@ -1,7 +1,7 @@
-
 "use client";
 
 import type { Dispatch } from "react";
+
 import type {
   Attendee,
   BookingAction,
@@ -29,7 +29,76 @@ function getAttendeeLabel(
     return `Child ${position - 1}`;
   }
 
-  return "Attendee";
+  return `Attendee ${index + 1}`;
+}
+
+// Calculate age on a specific date using local calendar dates.
+function calculateAge(
+  dateOfBirth: string,
+  festivalDate: string
+): number {
+  const birth = new Date(`${dateOfBirth}T00:00:00`);
+  const admission = new Date(`${festivalDate}T00:00:00`);
+
+  let age = admission.getFullYear() - birth.getFullYear();
+
+  const birthdayHasNotOccurred =
+    admission.getMonth() < birth.getMonth() ||
+    (admission.getMonth() === birth.getMonth() &&
+      admission.getDate() < birth.getDate());
+
+  if (birthdayHasNotOccurred) {
+    age--;
+  }
+
+  return age;
+}
+
+function getAttendeeAgeError(
+  ticket: Ticket,
+  attendee: Attendee,
+  index: number,
+  selectedDates: string[]
+): string | null {
+  if (!attendee.dateOfBirth || selectedDates.length === 0) {
+    return null;
+  }
+
+  for (const date of selectedDates) {
+    const age = calculateAge(attendee.dateOfBirth, date);
+
+    if (age < 0) {
+      return "Date of birth cannot be after the admission date.";
+    }
+
+    if (age < 5) {
+      return "Children under 5 do not require a paid ticket.";
+    }
+
+    if (ticket.code === "FAMILY_PASS") {
+      const position = index % 4;
+
+      if (position < 2 && age < 12) {
+        return "Family Pass adult attendees must be at least 12 years old.";
+      }
+
+      if (position >= 2 && (age < 5 || age > 11)) {
+        return "Family Pass child attendees must be between 5 and 11 years old.";
+      }
+
+      continue;
+    }
+
+    if (ticket.minAge !== null && age < ticket.minAge) {
+      return `This ticket requires attendees to be at least ${ticket.minAge} years old.`;
+    }
+
+    if (ticket.maxAge !== null && age > ticket.maxAge) {
+      return `This ticket is only valid for attendees up to ${ticket.maxAge} years old.`;
+    }
+  }
+
+  return null;
 }
 
 export default function AttendeeForm({
@@ -86,14 +155,19 @@ export default function AttendeeForm({
             {selection.attendees.map((attendee, index) => {
               const label = getAttendeeLabel(ticket.code, index);
 
+              const ageError = getAttendeeAgeError(
+                ticket,
+                attendee,
+                index,
+                selection.dates
+              );
+
               return (
                 <div
                   className="attendee-card"
                   key={`${ticket.code}-${index}`}
                 >
-                  <h4>
-                    {label} {index + 1}
-                  </h4>
+                  <h4>{label}</h4>
 
                   <div className="attendee-fields">
                     <label>
@@ -137,7 +211,17 @@ export default function AttendeeForm({
                       <input
                         type="date"
                         value={attendee.dateOfBirth}
-                        max="2026-11-10"
+                        max={
+                          selection.dates.length > 0
+                            ? [...selection.dates].sort()[0]
+                            : undefined
+                        }
+                        aria-invalid={Boolean(ageError)}
+                        aria-describedby={
+                          ageError
+                            ? `age-error-${ticket.code}-${index}`
+                            : undefined
+                        }
                         onChange={(event) =>
                           updateAttendee(
                             ticket.code,
@@ -147,6 +231,16 @@ export default function AttendeeForm({
                           )
                         }
                       />
+
+                      {ageError && (
+                        <p
+                          id={`age-error-${ticket.code}-${index}`}
+                          className="field-error"
+                          role="alert"
+                        >
+                          {ageError}
+                        </p>
+                      )}
                     </label>
                   </div>
                 </div>

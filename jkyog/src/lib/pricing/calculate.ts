@@ -228,7 +228,10 @@ export function calculatePricing(
   request: PricingRequest,
   tickets: CatalogTicket[],
   extras: CatalogExtra[],
+  options: { validateAttendeeDetails?: boolean } = {},
 ): PricingResult {
+  const { validateAttendeeDetails = true } = options;
+
   const errors: string[] = [];
   const lineItems: PricedLineItem[] = [];
 
@@ -243,7 +246,9 @@ export function calculatePricing(
       continue;
     }
 
-    errors.push(...validateAttendees(selection, ticket));
+    if (validateAttendeeDetails) {
+      errors.push(...validateAttendees(selection, ticket));
+    }
 
     const line = calculateTicketLine(selection, ticket, errors);
 
@@ -287,4 +292,4 @@ export function calculatePricing(
     appliedPromoCode: promo.appliedPromoCode,
     errors,
   };
-};
+}

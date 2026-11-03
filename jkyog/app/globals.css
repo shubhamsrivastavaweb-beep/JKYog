@@ -303,10 +303,15 @@ button:disabled {
   }
 }
 
+
 /* Attendee details */
 
 .attendee-section {
   margin-top: 56px;
+}
+
+.attendee-section .section-heading {
+  margin-bottom: 30px;
 }
 
 .attendee-ticket-group {
@@ -321,7 +326,7 @@ button:disabled {
 }
 
 .attendee-card {
-  margin-bottom: 14px;
+  margin-bottom: 16px;
   padding: 22px;
   border: 1px solid var(--gold);
   border-radius: 12px;
@@ -369,3 +374,300 @@ button:disabled {
     grid-template-columns: 1fr;
   }
 }
+
+
+/* Festival extras */
+
+.extras-section {
+  margin-top: 56px;
+}
+
+.extras-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px;
+}
+
+.extra-card {
+  padding: 24px;
+  border: 1px solid var(--gold);
+  border-radius: 14px;
+  background: var(--cream);
+  color: var(--body-light);
+  box-shadow: 0 8px 25px #00000018;
+}
+
+.extra-card-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.extra-card h3 {
+  margin: 0 0 8px;
+  color: var(--heading-dark);
+  font-family: var(--font-heading);
+  font-size: 1.4rem;
+}
+
+.extra-card p {
+  line-height: 1.6;
+}
+
+.extra-price {
+  margin: 18px 0 4px;
+  color: var(--heading-dark);
+  font-size: 1.6rem;
+  font-weight: 700;
+}
+
+.extra-price small {
+  font-size: 0.85rem;
+  font-weight: 400;
+}
+
+.extra-date-selection {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--gold);
+}
+
+.extra-date-selection > p {
+  font-size: 0.9rem;
+}
+
+@media (max-width: 700px) {
+  .extras-grid {
+    grid-template-columns: 1fr;
+  }
+}
+/* Extras section - scoped layout */
+
+.extras-section {
+  display: block;
+  width: 100%;
+  margin-top: 56px;
+}
+
+.extras-section .extras-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px;
+}
+
+.extras-section .extra-card {
+  display: block;
+  min-width: 0;
+  padding: 24px;
+  border: 1px solid var(--gold);
+  border-radius: 14px;
+  background: var(--cream);
+  color: var(--body-light);
+  box-shadow: 0 8px 25px #00000018;
+}
+
+.extras-section .extra-card h3 {
+  margin: 0 0 8px;
+  color: var(--heading-dark);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1.4rem;
+}
+
+.extras-section .extra-card p {
+  color: var(--body-light);
+  line-height: 1.6;
+}
+
+.extras-section .extra-price {
+  margin: 18px 0 4px;
+  color: var(--heading-dark);
+  font-size: 1.6rem;
+  font-weight: 700;
+}
+
+.extras-section .extra-price small {
+  font-size: 0.85rem;
+  font-weight: 400;
+}
+
+.extras-section .quantity-control {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--gold);
+  color: var(--heading-dark);
+}
+
+.extras-section .extra-date-selection {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--gold);
+}
+
+@media (max-width: 700px) {
+  .extras-section .extras-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Booking summary and promo code */
+
+.booking-summary-section {
+  margin-top: 56px;
+}
+
+.booking-summary-card {
+  padding: 28px;
+  border: 1px solid var(--gold);
+  border-radius: 14px;
+  background: var(--cream);
+  color: var(--body-light);
+}
+
+.summary-empty {
+  color: var(--body-light);
+  text-align: center;
+}
+
+.summary-items {
+  display: grid;
+  gap: 14px;
+}
+
+.summary-item {
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--gold);
+}
+
+.summary-item h3 {
+  margin: 0 0 6px;
+  color: var(--heading-dark);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1.1rem;
+}
+
+.summary-item p {
+  margin-top: 4px;
+  font-size: 0.9rem;
+}
+
+.promo-section {
+  margin-top: 24px;
+}
+
+.promo-section > label {
+  display: block;
+  margin-bottom: 9px;
+  color: var(--heading-dark);
+  font-weight: 700;
+}
+
+.promo-input-row input {
+  width: 100%;
+  max-width: 420px;
+  padding: 12px 14px;
+  border: 1px solid var(--gold);
+  border-radius: 8px;
+  background: var(--white);
+  color: var(--heading-dark);
+}
+
+.promo-input-row input:focus {
+  outline: 2px solid var(--bright-gold);
+  outline-offset: 2px;
+}
+
+.promo-hint {
+  margin-top: 8px;
+  font-size: 0.8rem;
+}
+
+.summary-totals {
+  margin-top: 24px;
+  padding-top: 18px;
+  border-top: 1px solid var(--gold);
+}
+
+.summary-total-row,
+.summary-grand-total {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 12px;
+}
+
+.summary-total-row strong {
+  color: var(--heading-dark);
+}
+
+.discount-row,
+.discount-row strong {
+  color: var(--success);
+}
+
+.summary-grand-total {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--gold);
+  color: var(--heading-dark);
+  font-size: 1.3rem;
+}
+
+.summary-grand-total strong {
+  font-size: 1.5rem;
+}
+
+.quote-status {
+  color: var(--body-light);
+  font-size: 0.9rem;
+}
+
+@media (max-width: 700px) {
+  .booking-summary-card {
+    padding: 20px;
+  }
+}
+
+.field-error {
+  color: #b42318;
+  font-size: 0.875rem;
+  line-height: 1.4;
+  margin-top: 0.375rem;
+}
+
+.attendee-fields input[aria-invalid="true"] {
+  border-color: #b42318;
+}
+
+.booking-validation {
+  margin-top: 1.5rem;
+  padding: 1rem 1.25rem;
+  border-radius: 8px;
+  background: #fff8e8;
+  border: 1px solid #ead7a5;
+}
+
+.booking-validation h3 {
+  margin: 0 0 0.75rem;
+  font-size: 1rem;
+}
+
+.booking-validation ul {
+  margin: 0;
+  padding-left: 1.25rem;
+}
+
+.booking-validation li {
+  margin-bottom: 0.4rem;
+  line-height: 1.5;
+  color: #8a3b20;
+}
+
+.validation-success {
+  margin: 0;
+  color: #287044;
+  font-weight: 600;
+}
+
