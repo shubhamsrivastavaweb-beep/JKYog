@@ -29,7 +29,7 @@ const attendeeSchema = z.object({
   dateOfBirth: dateOfBirthSchema,
 });
 
-const ticketSelectionSchema = z.object({
+export const ticketSelectionSchema = z.object({
   code: z.enum([
     "DAY_ADULT",
     "DAY_CHILD",
@@ -89,7 +89,7 @@ const ticketSelectionSchema = z.object({
   }
 });
 
-const extraSelectionSchema = z.object({
+export const extraSelectionSchema = z.object({
   code: z.enum([
     "DANDIYA_STICKS",
     "DINNER_PLATE",
@@ -132,6 +132,32 @@ const extraSelectionSchema = z.object({
       path: ["dates"],
       message:
         "Garba Workshop is available only on November 11 and 13.",
+    });
+  }
+});
+
+export const quoteBookingSchema = z.object({
+  tickets: z.array(ticketSelectionSchema).min(1).max(20),
+  extras: z.array(extraSelectionSchema).max(20),
+  promoCode: z.string().trim().max(50).optional(),
+}).superRefine((request, context) => {
+  const ticketCodes = request.tickets.map((ticket) => ticket.code);
+
+  if (new Set(ticketCodes).size !== ticketCodes.length) {
+    context.addIssue({
+      code: "custom",
+      path: ["tickets"],
+      message: "Each ticket type can only appear once per booking.",
+    });
+  }
+
+  const extraCodes = request.extras.map((extra) => extra.code);
+
+  if (new Set(extraCodes).size !== extraCodes.length) {
+    context.addIssue({
+      code: "custom",
+      path: ["extras"],
+      message: "Each extra type can only appear once per booking.",
     });
   }
 });

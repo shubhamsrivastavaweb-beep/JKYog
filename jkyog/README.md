@@ -1,36 +1,44 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+## Decisions I made
 
-## Getting Started
+### Garba Workshop inventory
 
-First, run the development server:
+The assignment specifies two workshop registrations but does not
+clarify whether the stock is shared between November 11 and 13.
+I treat the stock of two as a combined limit across both dates.
+This is consistent with the single inventory balance stored for
+the workshop in the database and prevents overselling.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+### Family Pass eligibility
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Each Family Pass covers two adults aged 12 or older and two
+children aged 5–11. A Family Pass is valid for one festival day.
+I require attendee details for all four people so eligibility
+can be checked.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Attendee age calculation
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+I calculate attendee age on the selected festival admission date,
+rather than the booking date. This ensures the age category
+reflects the attendee's age when attending.
 
-## Learn More
+### Under-five attendees
 
-To learn more about Next.js, take a look at the following resources:
+Children younger than five do not require paid tickets and cannot
+be assigned to a paid ticket selection.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### Inventory reservation timing
 
-## Deploy on Vercel
+Inventory is reserved when a booking is successfully created. A quote does not reserve inventory. This avoids holding stock for customers who have not submitted a booking.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### Simulated payment
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+The application uses simulated payment processing. A booking is confirmed immediately after the simulated payment succeeds. This keeps the implementation focused on booking and inventory correctness without requiring an external payment provider.
+
+### Transaction atomicity
+
+Booking creation, inventory reservation, promo redemption, attendee creation, and simulated payment recording are performed in a single database transaction. If any operation fails, all changes are rolled back. This prevents partially created bookings and inconsistent inventory.
+
+### Idempotent booking requests
+
+Each booking request requires an idempotency key. Repeating the same request with the same key returns the existing booking. Reusing the key with different booking details is rejected to prevent accidental duplicate or conflicting bookings.
