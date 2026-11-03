@@ -1,0 +1,1 @@
+ALTER TABLE "bookings" ADD COLUMN "request_hash" varchar(64) NOT NULL;

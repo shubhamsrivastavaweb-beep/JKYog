@@ -294,6 +294,10 @@ export const bookings = pgTable(
       length: 100,
     }).notNull().unique(),
 
+    requestHash: varchar("request_hash", {
+    length: 64,
+    }).notNull(),
+
     expiresAt: timestamp("expires_at", {
       withTimezone: true,
     }),
