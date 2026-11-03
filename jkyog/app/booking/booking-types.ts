@@ -95,6 +95,8 @@ export type BookingConfirmation = {
   paymentStatus: string;
 };
 
+export type SubmitBooking = () => Promise<void>;
+
 export type BookingState = {
   step: BookingStep;
   catalog: Catalog | null;
@@ -149,4 +151,5 @@ export type BookingAction =
   | { type: "STEP_CHANGED"; payload: BookingStep }
   | { type: "SUBMISSION_STARTED" }
   | { type: "BOOKING_CONFIRMED"; payload: BookingConfirmation }
-  | { type: "SUBMISSION_FAILED"; payload: string };
+  | { type: "SUBMISSION_FAILED"; payload: string }
+  | { type: "RESET_BOOKING" };

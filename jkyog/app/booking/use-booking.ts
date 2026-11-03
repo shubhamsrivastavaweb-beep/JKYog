@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useReducer } from "react";
+import { useEffect, useReducer, useRef } from "react";
 
 import {
   bookingReducer,
@@ -9,13 +9,121 @@ import {
 
 import type {
   BookingQuote,
+  BookingConfirmation,
   Catalog,
+  SubmitBooking,
 } from "./booking-types";
 
 export function useBooking() {
   const [state, dispatch] = useReducer(
     bookingReducer,
     initialBookingState
+  );
+
+  // Prevent duplicate submissions.
+  const submissionLock = useRef(false);
+
+  // Reuse the same key when retrying an uncertain request.
+  const idempotencyKey = useRef<string | null>(null);
+
+  // Submit the booking to the backend.
+  const submitBooking: SubmitBooking = async () => {
+    if (submissionLock.current || state.submitting) {
+      return;
+    }
+
+    submissionLock.current = true;
+
+    if (!idempotencyKey.current) {
+      idempotencyKey.current = crypto.randomUUID();
+    }
+
+    dispatch({ type: "SUBMISSION_STARTED" });
+
+    try {
+      const selectedTickets = Object.values(state.tickets)
+        .filter((ticket) => ticket.quantity > 0)
+        .map((ticket) => ({
+          code: ticket.code,
+          quantity: ticket.quantity,
+          dates: ticket.dates,
+          attendees: ticket.attendees,
+        }));
+
+      const selectedExtras = Object.values(state.extras)
+        .filter((extra) => extra.quantity > 0)
+        .map((extra) => ({
+          code: extra.code,
+          quantity: extra.quantity,
+          ...(extra.dates.length > 0
+            ? { dates: extra.dates }
+            : {}),
+        }));
+
+      const response = await fetch("/api/bookings", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          booker: state.booker,
+          tickets: selectedTickets,
+          extras: selectedExtras,
+          promoCode: state.promoCode.trim() || undefined,
+          idempotencyKey: idempotencyKey.current,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          result.error ?? "Unable to complete your booking."
+        );
+      }
+
+      const confirmation: BookingConfirmation = result.booking;
+
+      dispatch({
+        type: "BOOKING_CONFIRMED",
+        payload: confirmation,
+      });
+
+      // A successful booking is complete.
+      idempotencyKey.current = null;
+    } catch (error) {
+      dispatch({
+        type: "SUBMISSION_FAILED",
+        payload:
+          error instanceof Error
+            ? error.message
+            : "Something went wrong while creating your booking.",
+      });
+    } finally {
+      submissionLock.current = false;
+    }
+  };
+
+  // Build stable quote keys from price-affecting selections only.
+  // Attendee name and DOB changes will not trigger quote requests.
+  const ticketQuoteKey = JSON.stringify(
+    Object.values(state.tickets)
+      .filter((ticket) => ticket.quantity > 0)
+      .map(({ code, quantity, dates }) => ({
+        code,
+        quantity,
+        dates,
+      }))
+  );
+
+  const extraQuoteKey = JSON.stringify(
+    Object.values(state.extras)
+      .filter((extra) => extra.quantity > 0)
+      .map(({ code, quantity, dates }) => ({
+        code,
+        quantity,
+        dates,
+      }))
   );
 
   // Load the festival catalog once.
@@ -41,7 +149,10 @@ export function useBooking() {
           payload: catalog,
         });
       } catch (error) {
-        if (error instanceof Error && error.name === "AbortError") {
+        if (
+          error instanceof Error &&
+          error.name === "AbortError"
+        ) {
           return;
         }
 
@@ -114,7 +225,7 @@ export function useBooking() {
       return;
     }
 
-    // Date-restricted extras must have valid selections before quoting.
+    // Date-restricted extras must have dates before quoting.
     const extrasReady = selectedExtras.every((selection) => {
       if (
         selection.code === "DINNER_PLATE" ||
@@ -170,7 +281,8 @@ export function useBooking() {
 
         if (!response.ok) {
           throw new Error(
-            result.error ?? "Unable to calculate your booking total."
+            result.error ??
+              "Unable to calculate your booking total."
           );
         }
 
@@ -181,7 +293,10 @@ export function useBooking() {
           payload: quote,
         });
       } catch (error) {
-        if (error instanceof Error && error.name === "AbortError") {
+        if (
+          error instanceof Error &&
+          error.name === "AbortError"
+        ) {
           return;
         }
 
@@ -201,10 +316,14 @@ export function useBooking() {
     };
   }, [
     state.catalog,
-    state.tickets,
-    state.extras,
+    ticketQuoteKey,
+    extraQuoteKey,
     state.promoCode,
   ]);
 
-  return { state, dispatch };
+  return {
+    state,
+    dispatch,
+    submitBooking,
+  };
 }

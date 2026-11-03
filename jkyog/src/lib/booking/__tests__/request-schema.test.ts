@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { createBookingSchema } from "./request-schema";
+import { createBookingSchema } from "../request-schema";
 
 const validBooking = {
   booker: {

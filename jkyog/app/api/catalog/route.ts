@@ -7,13 +7,7 @@ import { loadBookingCatalog } from "@/src/lib/booking/service";
 
 export async function GET() {
   try {
-    console.time("Catalog: load tickets and extras");
-
     const catalog = await loadBookingCatalog();
-
-    console.timeEnd("Catalog: load tickets and extras");
-
-    console.time("Catalog: load festival dates");
 
     const dates = await db
       .select({
@@ -23,8 +17,6 @@ export async function GET() {
       .from(festivalDates)
       .where(eq(festivalDates.isActive, true))
       .orderBy(asc(festivalDates.date));
-
-    console.timeEnd("Catalog: load festival dates");
 
     return NextResponse.json({
       festivalDates: dates,

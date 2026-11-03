@@ -1,3 +1,4 @@
+import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
 import {
   and,
   eq,
@@ -41,6 +42,8 @@ import type {
   PricingRequest,
   PricingResult,
 } from "../pricing/types";
+
+type BookingDatabase = PostgresJsDatabase<Record<string, unknown>>;
 
 export interface BookingQuote {
   pricing: PricingResult;
@@ -229,6 +232,7 @@ export async function quoteBooking(
 export async function createBooking(
   //let the service accept unknown input, because the API receives untrusted JSON. The service already validates it using Zod.
   input: unknown,
+  database: BookingDatabase = db,
 ): Promise<BookingResult> {
   const parsed = createBookingSchema.safeParse(input);
 
@@ -248,7 +252,7 @@ export async function createBooking(
   const now = new Date();
 
   // Check for an existing booking before starting a new transaction.
-  const existing = await db
+  const existing = await database
     .select()
     .from(bookings)
     .where(eq(bookings.idempotencyKey, request.idempotencyKey))
@@ -264,7 +268,7 @@ export async function createBooking(
       );
     }
 
-    const [payment] = await db
+    const [payment] = await database
       .select()
       .from(payments)
       .where(eq(payments.bookingId, existingBooking.id))
@@ -283,7 +287,7 @@ export async function createBooking(
   }
 
   try {
-    return await db.transaction(async (tx) => {
+    return await database.transaction(async (tx) => {
       // 1. Load current active catalog from the database.
       const [ticketRows, extraRows] = await Promise.all([
         tx
@@ -646,7 +650,7 @@ export async function createBooking(
   } catch (error) {
     // Handle a concurrent request that used the same idempotency key.
     // The unique constraint ensures only one transaction can create it.
-    const [existingBooking] = await db
+    const [existingBooking] = await database
       .select()
       .from(bookings)
       .where(eq(bookings.idempotencyKey, request.idempotencyKey))
@@ -660,7 +664,7 @@ export async function createBooking(
         );
       }
 
-      const [payment] = await db
+      const [payment] = await database
         .select()
         .from(payments)
         .where(eq(payments.bookingId, existingBooking.id))

@@ -130,10 +130,15 @@ function calculateExtraLine(
     return null;
   }
 
-  if (selection.quantity > extra.remainingStock) {
-    errors.push(`${extra.name}: not enough stock remains.`);
-    return null;
-  }
+  const requiredStock =
+  extra.code === "DINNER_PLATE"
+    ? selection.quantity * (selection.dates?.length ?? 0)
+    : selection.quantity;
+
+if (requiredStock > extra.remainingStock) {
+  errors.push(`${extra.name}: not enough stock remains.`);
+  return null;
+}
 
   if (extra.code === "GARBA_WORKSHOP") {
     if (!selection.dates || selection.dates.length === 0) {

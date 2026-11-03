@@ -467,4 +467,39 @@ describe("calculatePricing", () => {
       "Day Pass Adult: duplicate dates are not allowed.",
     );
   });
+  it("rejects Dinner Plates when quantity multiplied by selected days exceeds stock", () => {
+  const request = {
+    tickets: [],
+    extras: [
+      {
+        code: "DINNER_PLATE" as const,
+        quantity: 2,
+        dates: [
+          "2026-11-10",
+          "2026-11-11",
+          "2026-11-12",
+        ],
+      },
+    ],
+  };
+
+  const result = calculatePricing(
+    request,
+    [],
+    [
+      {
+        code: "DINNER_PLATE",
+        name: "Dinner Plate",
+        priceCents: 1200,
+        remainingStock: 5,
+        dateRestricted: true,
+        isActive: true,
+      },
+    ],
+  );
+
+  expect(result.errors).toContain(
+    "Dinner Plate: not enough stock remains.",
+  );
+});
 });

@@ -5,6 +5,7 @@ import type { Dispatch } from "react";
 import type {
   BookingAction,
   BookingState,
+  SubmitBooking,
 } from "../booking-types";
 
 import { formatCurrency } from "../format-currency";
@@ -13,11 +14,13 @@ import { validateBookingForm } from "../booking-validation";
 type BookingSummaryProps = {
   state: BookingState;
   dispatch: Dispatch<BookingAction>;
+  submitBooking: SubmitBooking;
 };
 
 export default function BookingSummary({
   state,
   dispatch,
+  submitBooking
 }: BookingSummaryProps) {
   const catalog = state.catalog;
 
@@ -206,6 +209,26 @@ export default function BookingSummary({
                 </>
               )}
             </div>
+            {state.submissionError && (
+              <p className="error-message" role="alert">
+                {state.submissionError}
+              </p>
+            )}
+
+            <button
+              className="primary-button"
+              type="button"
+              disabled={
+                state.submitting ||
+                state.quoteLoading ||
+                !state.quote ||
+                Boolean(state.quoteError) ||
+                !isBookingReady
+              }
+              onClick={() => void submitBooking()}
+            >
+              {state.submitting ? "Processing..." : "Book Now"}
+            </button>
           </>
         )}
       </div>

@@ -6,10 +6,22 @@
 
 | Test suite | Tests | Result |
 |---|---:|---|
-| Pricing calculation | 15 | Passed |
+| Booking integration tests | 4 | Passed |
+| Pricing calculation | 16 | Passed |
 | Attendee age validation | 8 | Passed |
 | Booking request schema | 5 | Passed |
-| **Total** | **28** | **All passed** |
+| **Total** | **33** | **All passed** |
+
+### Booking integration tests
+
+| Scenario | Expected result | Observed result | Status |
+|---|---|---|---|
+| Two customers compete for the last ticket | Only one booking succeeds | One succeeds; one receives HTTP 409; stock remains correct | Passed |
+| Two identical concurrent requests use the same idempotency key | Only one booking is created | Both receive the same booking; no duplicate | Passed |
+| Two bookings compete for the final promo redemption | Only one redemption succeeds | One succeeds; one is rejected; usage limit is respected | Passed |
+| Two customers compete for the last extra | Only one booking succeeds | One succeeds; losing transaction rolls back ticket reservation | Passed |
+
+Integration tests use a separate Supabase test database.
 
 ## 2. Static Checks and Production Build
 
@@ -44,6 +56,8 @@
 
 Promo redemption records and usage counts were checked in PostgreSQL. Successful promo redemptions were recorded; invalid, expired, and exhausted codes did not create redemption records.
 
+Concurrent redemption testing also verified that the usage limit cannot be exceeded.
+
 ## 5. Extras and Inventory Tests
 
 | Scenario | Observed result | Status |
@@ -54,8 +68,11 @@ Promo redemption records and usage counts were checked in PostgreSQL. Successful
 | Garba Workshop on Nov 12 | HTTP 400; date rejected | Passed |
 | Garba Workshop on Nov 13 | HTTP 201; stock reduced from 1 to 0 | Passed |
 | Third workshop registration | HTTP 422; insufficient stock | Passed |
+| Dinner Plate quantity across multiple dates exceeds stock | Pricing rejected | Passed |
 
 The workshop's stock is shared across its two eligible dates.
+
+Dinner Plate inventory is calculated as quantity multiplied by the number of selected dates.
 
 ## 6. Family Pass Tests
 
@@ -95,7 +112,7 @@ The workshop's stock is shared across its two eligible dates.
 | DAY_ADULT with SEVA10 | HTTP 200; subtotal $15.00, discount $1.50, total $13.50 | Passed |
 | Invalid promo code | HTTP 422 | Passed |
 | Sold-out All-Day Adult Pass | HTTP 422 | Passed |
-| Quote does not reserve inventory | DAY_ADULT stock remained 369 | Passed |
+| Quote does not reserve inventory | DAY_ADULT stock remained unchanged during quote | Passed |
 
 ## 9. Database and Transaction Verification
 
@@ -105,13 +122,21 @@ The workshop's stock is shared across its two eligible dates.
 - Promo usage counts and redemption records were verified.
 - Idempotent retries did not create duplicate bookings.
 - Failed validation and insufficient-stock requests did not consume inventory.
+- Concurrent ticket reservations did not oversell inventory.
+- Concurrent extra reservations did not oversell inventory.
+- Failed concurrent extra reservation rolled back the associated ticket reservation.
+- Concurrent promo redemption attempts respected the usage limit.
 
-## 10. Remaining Verification
+## 10. Final Verification Before Submission
 
-The following still need testing or completion before final submission:
-
-- Concurrent booking requests competing for the last available inventory.
-- Concurrent promo redemption attempts at the usage limit.
-- Any additional failure/rollback scenarios.
-- Deployment and production smoke tests.
-- Final README and deployment documentation.
+- [x] Automated tests — 33 passed.
+- [x] TypeScript validation.
+- [x] Production build.
+- [x] Booking concurrency tests.
+- [x] Promo concurrency test.
+- [x] Extras inventory concurrency test.
+- [ ] Final browser walkthrough.
+- [ ] Final README review.
+- [ ] Vercel deployment.
+- [ ] Production smoke tests.
+- [ ] Final submission and demo recording.

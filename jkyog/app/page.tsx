@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useBooking } from "./booking/use-booking";
@@ -7,9 +6,10 @@ import AttendeeForm from "./booking/components/AttendeeForm";
 import ExtrasSelector from "./booking/components/ExtrasSelector";
 import BookingSummary from "./booking/components/BookingSummary";
 import BookerForm from "./booking/components/BookerForm";
+import BookingConfirmation from "./booking/components/BookingConfirmation";
 
 export default function Home() {
-  const { state, dispatch } = useBooking();
+  const { state, dispatch, submitBooking } = useBooking();
 
   if (state.catalogLoading) {
     return (
@@ -20,6 +20,12 @@ export default function Home() {
           </p>
         </div>
       </main>
+    );
+  }
+  // Show confirmation independently of catalog state.
+  if (state.step === "confirmation" && state.confirmation) {
+    return (
+      <BookingConfirmation confirmation={state.confirmation} dispatch={dispatch} />
     );
   }
 
@@ -47,7 +53,9 @@ export default function Home() {
     <main className="booking-page">
       <div className="page-container">
         <header className="festival-header">
-          <p className="festival-eyebrow">RADHA KRISHNA TEMPLE PRESENTS</p>
+          <p className="festival-eyebrow">
+            RADHA KRISHNA TEMPLE PRESENTS
+          </p>
           <h1>Sharad Utsav 2026</h1>
           <p className="festival-subtitle">
             Celebrate devotion, culture, music and togetherness.
@@ -65,24 +73,29 @@ export default function Home() {
           selections={state.tickets}
           dispatch={dispatch}
         />
+
         <AttendeeForm
           tickets={state.catalog.tickets}
           selections={state.tickets}
           dispatch={dispatch}
         />
+
         <BookerForm
           booker={state.booker}
           dispatch={dispatch}
         />
+
         <ExtrasSelector
           extras={state.catalog.extras}
           festivalDates={state.catalog.festivalDates}
           selections={state.extras}
           dispatch={dispatch}
         />
+
         <BookingSummary
           state={state}
           dispatch={dispatch}
+          submitBooking={submitBooking}
         />
       </div>
     </main>

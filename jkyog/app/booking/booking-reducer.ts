@@ -252,6 +252,7 @@ export function bookingReducer(
         ...state,
         submitting: false,
         confirmation: action.payload,
+        submissionError: null,
         step: "confirmation",
       };
 
@@ -261,7 +262,13 @@ export function bookingReducer(
         submitting: false,
         submissionError: action.payload,
       };
-
+    case "RESET_BOOKING":
+      return {
+        ...initialBookingState,
+        catalog: state.catalog,
+        catalogLoading: false,
+        catalogError: null,
+      };
     default:
       return state;
   }
