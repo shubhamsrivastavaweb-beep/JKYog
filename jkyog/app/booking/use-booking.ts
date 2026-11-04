@@ -69,7 +69,7 @@ export function useBooking() {
           booker: state.booker,
           tickets: selectedTickets,
           extras: selectedExtras,
-          promoCode: state.promoCode.trim() || undefined,
+          promoCode: state.appliedPromoCode || undefined,
           idempotencyKey: idempotencyKey.current,
         }),
       });
@@ -273,7 +273,7 @@ export function useBooking() {
                 : {}),
             })),
 
-            promoCode: state.promoCode.trim() || undefined,
+            promoCode: state.appliedPromoCode || undefined,
           }),
         });
 
@@ -318,7 +318,7 @@ export function useBooking() {
     state.catalog,
     ticketQuoteKey,
     extraQuoteKey,
-    state.promoCode,
+    state.appliedPromoCode,
   ]);
 
   return {

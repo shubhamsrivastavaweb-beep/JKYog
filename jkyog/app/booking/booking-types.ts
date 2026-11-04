@@ -108,6 +108,7 @@ export type BookingState = {
 
   booker: BookerDetails;
   promoCode: string;
+  appliedPromoCode: string | null;
 
   quote: BookingQuote | null;
   quoteLoading: boolean;
@@ -144,6 +145,7 @@ export type BookingAction =
     }
   | { type: "BOOKER_UPDATED"; payload: Partial<BookerDetails> }
   | { type: "PROMO_CODE_CHANGED"; payload: string }
+  | { type: "PROMO_CODE_APPLIED"; payload: string }
   | { type: "QUOTE_RESET" }
   | { type: "QUOTE_LOADING" }
   | { type: "QUOTE_LOADED"; payload: BookingQuote }

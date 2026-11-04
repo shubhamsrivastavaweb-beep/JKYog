@@ -51,6 +51,12 @@ export default function BookingSummary({
       .join(", ");
   }
 
+  function getLineItemPrice(code: string) {
+  return state.quote?.lineItems.find(
+    (item) => item.code === code
+  );
+}
+
   return (
     <section className="booking-summary-section">
       <div className="section-heading">
@@ -74,11 +80,8 @@ export default function BookingSummary({
                 if (!ticket) return null;
 
                 return (
-                  <div
-                    className="summary-item"
-                    key={selection.code}
-                  >
-                    <div>
+                  <div className="summary-item" key={selection.code}>
+                    <div className="summary-item-details">
                       <h3>{ticket.name}</h3>
                       <p>Quantity: {selection.quantity}</p>
                       <p>
@@ -87,6 +90,14 @@ export default function BookingSummary({
                           : "Select admission dates"}
                       </p>
                     </div>
+
+                    <strong className="summary-item-price">
+                      {getLineItemPrice(selection.code)
+                        ? formatCurrency(
+                            getLineItemPrice(selection.code)!.lineTotalCents
+                          )
+                        : "—"}
+                    </strong>
                   </div>
                 );
               })}
@@ -99,11 +110,8 @@ export default function BookingSummary({
                 if (!extra) return null;
 
                 return (
-                  <div
-                    className="summary-item"
-                    key={selection.code}
-                  >
-                    <div>
+                  <div className="summary-item" key={selection.code}>
+                    <div className="summary-item-details">
                       <h3>{extra.name}</h3>
                       <p>Quantity: {selection.quantity}</p>
 
@@ -111,6 +119,14 @@ export default function BookingSummary({
                         <p>{getDateLabels(selection.dates)}</p>
                       )}
                     </div>
+
+                    <strong className="summary-item-price">
+                      {getLineItemPrice(selection.code)
+                        ? formatCurrency(
+                            getLineItemPrice(selection.code)!.lineTotalCents
+                          )
+                        : "—"}
+                    </strong>
                   </div>
                 );
               })}
@@ -133,35 +149,104 @@ export default function BookingSummary({
                     })
                   }
                 />
+                <button
+                  className="primary-button"
+                  type="button"
+                  disabled={
+                    !state.promoCode.trim() ||
+                    state.quoteLoading ||
+                    !hasSelection
+                  }
+                  onClick={() =>
+                    dispatch({
+                      type: "PROMO_CODE_APPLIED",
+                      payload: state.promoCode.trim(),
+                    })
+                  }
+                >
+                  Apply Coupon
+                </button>
               </div>
 
               <p className="promo-hint">
-                Available codes include SEVA10, FLAT20 and KIDSFREE.
-              </p>
+                    Available codes include SEVA10, FLAT20 and KIDSFREE.
+                  </p>
+
+                  {state.appliedPromoCode && state.quoteLoading && (
+                    <p className="promo-feedback promo-checking" role="status">
+                      <span className="promo-spinner" />
+                      Checking your promo code...
+                    </p>
+                  )}
+
+                  {state.appliedPromoCode &&
+                    !state.quoteLoading &&
+                    state.quoteError && (
+                      <p className="promo-feedback promo-error" role="alert">
+                        <span>!</span>
+                        {state.quoteError}
+                      </p>
+                    )}
+
+                  {state.appliedPromoCode &&
+                    !state.quoteLoading &&
+                    !state.quoteError &&
+                    state.quote?.appliedPromoCode?.toUpperCase() ===
+                      state.appliedPromoCode.toUpperCase() && (
+                      <p className="promo-feedback promo-success" role="status">
+                        <span>✓</span>
+                        {state.quote.discountCents > 0
+                          ? `Coupon applied successfully! You saved ${formatCurrency(
+                              state.quote.discountCents
+                            )}.`
+                          : "Coupon applied successfully!"}
+                      </p>
+                    )}
+
+                  {state.appliedPromoCode?.toUpperCase() === "KIDSFREE" &&
+                    state.quote?.appliedPromoCode?.toUpperCase() === "KIDSFREE" && (
+                      <p className="promo-info">
+                        <strong>Good to know:</strong> KIDSFREE makes child tickets free.
+                        Adult tickets are not discounted by this coupon.
+                      </p>
+                    )}
             </div>
 
-            <div
-              className="booking-validation"
-              aria-live="polite"
-            >
-              {validationErrors.length > 0 ? (
-                <>
-                  <h3>Please complete the following:</h3>
+            <div className="booking-validation" aria-live="polite">
+                  {validationErrors.length > 0 ? (
+                    <>
+                      <div className="validation-header">
+                        <div className="validation-icon">!</div>
+                        <div>
+                          <h3>A few things need your attention</h3>
+                          <p>
+                            Please review the following before confirming your booking.
+                          </p>
+                        </div>
+                        <span className="validation-count">
+                          {validationErrors.length}
+                        </span>
+                      </div>
 
-                  <ul>
-                    {validationErrors.map((error, index) => (
-                      <li key={`${index}-${error}`}>
-                        {error}
-                      </li>
-                    ))}
-                  </ul>
-                </>
-              ) : (
-                <p className="validation-success">
-                  Your booking details look good. You can proceed.
-                </p>
-              )}
-            </div>
+                      <ul className="validation-list">
+                        {validationErrors.map((error, index) => (
+                          <li key={`${error}-${index}`}>
+                            <span className="validation-item-icon">•</span>
+                            <span>{error}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </>
+                  ) : (
+                    <div className="validation-success">
+                      <span className="success-icon">✓</span>
+                      <div>
+                        <h3>You're all set!</h3>
+                        <p>Your booking details look good. You can proceed.</p>
+                      </div>
+                    </div>
+                  )}
+                </div>
 
             <div className="summary-totals" aria-live="polite">
               {state.quoteLoading && (
@@ -170,7 +255,7 @@ export default function BookingSummary({
                 </p>
               )}
 
-              {state.quoteError && (
+              {state.quoteError && !state.appliedPromoCode && (
                 <p className="error-message" role="alert">
                   {state.quoteError}
                 </p>
@@ -216,7 +301,7 @@ export default function BookingSummary({
             )}
 
             <button
-              className="primary-button"
+              className="primary-button book-now-button"
               type="button"
               disabled={
                 state.submitting ||

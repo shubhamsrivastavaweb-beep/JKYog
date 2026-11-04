@@ -25,7 +25,7 @@ export const initialBookingState: BookingState = {
   },
 
   promoCode: "",
-
+  appliedPromoCode: null,
   quote: null,
   quoteLoading: false,
   quoteError: null,
@@ -197,11 +197,19 @@ export function bookingReducer(
 
     case "PROMO_CODE_CHANGED":
       return {
-        ...state,
-        promoCode: action.payload,
-        quote: null,
-        quoteError: null,
-      };
+      ...state,
+      promoCode: action.payload,
+      appliedPromoCode: null,
+      quoteError: null,
+    };
+
+    case "PROMO_CODE_APPLIED":
+    return {
+      ...state,
+      appliedPromoCode: action.payload.trim() || null,
+      quote: null,
+      quoteError: null,
+    };
 
     case "QUOTE_LOADING":
       return {

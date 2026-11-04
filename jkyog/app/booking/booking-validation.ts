@@ -363,7 +363,7 @@ export function validateBookingForm(
   if (state.quoteLoading) {
     errors.push("Please wait while your booking total is calculated.");
   } else if (state.quoteError) {
-    errors.push("Resolve the pricing error before continuing.");
+    errors.push("Invalid promo code.");
   } else if (!state.quote) {
     errors.push("Your booking total has not been calculated yet.");
   }
